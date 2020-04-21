@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 
+const del = require('del');
 const util = require('util');
 const {exec} = require('child_process');
 const execPromise = util.promisify(exec);
@@ -15,7 +16,7 @@ const buildServerApi = axios.create({
 });
 
 const state = {
-  isRegistered: false,
+  isRegistered: undefined,
   currentBuild: null
 };
 
@@ -50,15 +51,19 @@ agent.post(`/build`, async (req, res) => {
   }
 });
 
-agent.listen(conf.port, () => {
+agent.listen(conf.port, async () => {
   console.log(`Build agent is listening port ${conf.port}...`);
+
+  await registerAgent();
+
+  setTimeout(async function tick() {
+    await registerAgent();
+    setTimeout(tick, 5000);
+  }, 5000);
 
   setTimeout(async function tick() {
     try {
-      const isRegistered = await registerAgent();
-      if (isRegistered) {
-        await processBuild();
-      }
+      await processBuild();
     } catch (err) {
       console.log(`Error:`, err);
     }
@@ -68,24 +73,22 @@ agent.listen(conf.port, () => {
 });
 
 const registerAgent = async () => {
-  if (state.isRegistered) {
-    return true;
-  }
-
   try {
     await buildServerApi.post(`/notify-agent`, {
       host: `http://localhost`,
       port: conf.port
     });
 
-    state.isRegistered = true;
-    console.log(`Build agent was successfully registered.`);
+    if (!state.isRegistered || state.isRegistered === undefined) {
+      state.isRegistered = true;
+      console.log(`Build agent was successfully registered.`);
+    }
   } catch (e) {
-    state.isRegistered = false;
-    console.log(`Build agent registration failed.`);
+    if (state.isRegistered || state.isRegistered === undefined) {
+      state.isRegistered = false;
+      console.log(`Build agent registration failed.`);
+    }
   }
-
-  return state.isRegistered;
 };
 
 const processBuild = async () => {
@@ -124,9 +127,10 @@ const processBuild = async () => {
   try {
     await buildServerApi.post(`/notify-build-result`, result);
   } catch (err) {
-    console.log(`Build server is not responding.`);
     state.isRegistered = false;
+    console.log(`Build server is not responding.`);
   } finally {
+    await del(state.currentBuild.repoPath);
     state.currentBuild = null;
     console.log(`Finished build process. Build: ${build.buildId}`);
   }

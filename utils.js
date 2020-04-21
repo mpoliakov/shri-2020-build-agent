@@ -1,5 +1,5 @@
 const checkCommandForVulnerabilities = (command) => {
-  if (!command.startsWith('npm')) {
+  if (!command.startsWith('npm') && !command.startsWith('yarn')) {
     return false;
   }
 
