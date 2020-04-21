@@ -1,4 +1,4 @@
-const checkBuildCommand = (command) => {
+const checkCommandForVulnerabilities = (command) => {
   if (!command.startsWith('npm')) {
     return false;
   }
@@ -11,5 +11,5 @@ const checkBuildCommand = (command) => {
 };
 
 module.exports = {
-  checkBuildCommand
+  checkCommandForVulnerabilities
 };

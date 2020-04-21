@@ -2,10 +2,10 @@
   "name": "shri-2020-build-agent",
   "version": "1.0.0",
   "description": "",
-  "main": "build-agent.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node build-agent.js",
-    "dev": "nodemon build-agent.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
   "author": "Max Poliakov",
   "license": "ISC",

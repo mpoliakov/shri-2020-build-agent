@@ -6,8 +6,8 @@ const {exec} = require('child_process');
 const execPromise = util.promisify(exec);
 
 const conf = require('./agent-conf');
-const checkoutCommit = require('./checkout-commit');
-const {checkBuildCommand} = require('./utils');
+const {checkoutCommit} = require('./git-helper');
+const {checkCommandForVulnerabilities} = require('./utils');
 
 const buildServerApi = axios.create({
   baseURL: `${conf.serverHost}:${conf.serverPort}`,
@@ -29,6 +29,8 @@ agent.post(`/build`, async (req, res) => {
     commitHash,
     buildCommand
   } = req.body;
+
+  console.log(`Starting build process... Build: ${buildId}`);
 
   try {
     const repoPath = await checkoutCommit(repoUrl, commitHash);
@@ -104,9 +106,7 @@ const processBuild = async () => {
     stderr: null
   }
 
-  console.log(`Starting build process... Build: ${build.buildId}`);
-
-  if (checkBuildCommand(build.buildCommand)) {
+  if (checkCommandForVulnerabilities(build.buildCommand)) {
     try {
        const {stdout} = await execPromise(build.buildCommand, {
         cwd: build.repoPath

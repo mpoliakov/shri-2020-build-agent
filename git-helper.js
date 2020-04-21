@@ -21,4 +21,6 @@ const checkoutCommit = async (repoUrl, commitHash) => {
   return Promise.resolve(repoPath);
 };
 
-module.exports = checkoutCommit;
+module.exports = {
+  checkoutCommit,
+};
