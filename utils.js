@@ -1,7 +1,5 @@
 const checkCommandForVulnerabilities = (command) => {
-  if (!command.startsWith('npm') && !command.startsWith('yarn')) {
-    return false;
-  }
+  // TODO: check command for vulnerabilities
 
   if (command.indexOf(';') > -1) {
     return false;
